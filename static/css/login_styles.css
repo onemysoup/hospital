@@ -1,0 +1,245 @@
+/*
+ * login_styles.css - 医院系统登录页面的自定义美化样式
+ * 目标：美观、简洁、专业
+ */
+
+/* =====================================================================
+ * 1. 整体页面背景和基本布局 (负责全屏背景和内容居中)
+ * ===================================================================== */
+html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%; /* 确保html和body占据整个视口高度 */
+    width: 100%;
+    overflow: hidden; /* 防止出现不必要的滚动条 */
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+
+    /* 设置像素风格图片为背景 */
+    background-image: url('/static/image/入口封面.png'); /* **请确保这个路径是您图片实际的路径** */
+    background-size: cover; /* 确保图片覆盖整个背景区域 */
+    background-repeat: no-repeat; /* 防止图片重复 */
+    background-position: center center; /* 图片居中显示 */
+
+    display: flex;
+    justify-content: center; /* 水平居中 */
+    align-items: center; /* 垂直居中 */
+    position: relative;
+    /* filter: brightness(90%) contrast(110%); /* 移除之前尝试的滤镜，让图片更清晰 */
+}
+
+/* =====================================================================
+ * 2. 登录框容器 (包围 el-form 的 div.login-container)
+ * 整合了您原 login.css 中关于 width 和 display:flex 的布局
+ * ===================================================================== */
+.login-container {
+    width: 90%;
+    max-width: 700px;
+    min-height: 450px;
+
+    background-color: var(--text-light); /* **纯白色不透明背景** */
+    padding: 50px;
+    border-radius: 12px;
+    box-shadow: 0 15px 40px var(--shadow-color); /* 较深的阴影，使面板有立体感 */
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    box-sizing: border-box;
+    position: relative;
+    z-index: 1;
+    /* border: none; /* 确保没有多余的边框，或根据需要设置 */
+}
+
+/* =====================================================================
+ * 3. 登录表单 (el-form 对应的 .login-form)
+ * ===================================================================== */
+.login-container .login-form {
+    width: 320px; /* 固定表单宽度，使其紧凑 */
+    /* 确保Element UI的el-form-item不会因为这个宽度而错位 */
+}
+
+/* =====================================================================
+ * 4. 标题区域 (.title-container 和 .title)
+ * ===================================================================== */
+.login-container .title-container {
+    width: 100%; /* **确保占据其父容器的全部宽度** */
+    text-align: center;
+    line-height: normal; /* 确保行高不会额外挤压空间 */
+    margin-bottom: 40px;
+    white-space: nowrap; /* **新增：强制文本不换行** */
+    overflow: hidden; /* **新增：当文字溢出时隐藏溢出部分** */
+    text-overflow: ellipsis; /* **新增：当文字溢出时显示省略号 (可选)** */
+}
+
+.login-container .title {
+    font-size: 38px; /* 您尝试放大的字号 */
+    font-weight: bold;
+    color: #fff0f5;
+    letter-spacing: 2px;
+    margin: 0;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.05);
+}
+
+/* =====================================================================
+ * 5. Element UI Tabs (角色切换面板)
+ * ===================================================================== */
+.login-form .el-tabs__item {
+    font-size: 16px;
+    font-weight: 500;
+    color: #fff0f5; /* 未选中标签文字颜色 */
+    padding: 0 15px; /* 调整tab项的内边距，使其更紧凑 */
+    flex: 1; /* 使每个tab项均匀分配空间，配合 el-tabs 的 stretch 属性 */
+    transition: all 0.3s ease; /* 过渡效果 */
+}
+
+.login-form .el-tabs__item.is-active {
+    color: #1A73E8; /* 选中时的主色 */
+    font-weight: 600; /* 选中时加粗 */
+}
+
+.login-form .el-tabs__active-bar {
+    background-color: #1A73E8; /* 激活条颜色 */
+}
+
+.login-form .el-tabs__nav-wrap::after {
+    background-color: #E0E0E0; /* 底部细线颜色 */
+    height: 1px; /* 细线高度 */
+}
+
+.login-form .el-tabs__header {
+    margin-bottom: 30px; /* 标签与输入框的间距 */
+}
+
+/* =====================================================================
+ * 6. Element UI 输入框 (el-input)
+ * ===================================================================== */
+.login-form .el-input__inner {
+    padding: 12px 15px; /* 内部填充 */
+    border: 1px solid #DCDFE6; /* 默认边框颜色 */
+    border-radius: 5px; /* 圆角 */
+    font-size: 16px;
+    color: #333;
+    box-shadow: none !important; /* 移除 Element UI 默认的 box-shadow，我们用聚焦时的 */
+}
+
+.login-form .el-input__inner:focus {
+    border-color: #1A73E8; /* 聚焦时边框变色 */
+    outline: none; /* 移除默认外轮廓 */
+    box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.2) !important; /* 柔和的光晕效果 */
+}
+
+/* =====================================================================
+ * 7. Element UI 按钮 (el-button)
+ * ===================================================================== */
+.login-form .el-button {
+    padding: 12px 20px;
+    border-radius: 5px;
+    font-size: 18px;
+    font-weight: bold;
+    transition: all 0.3s ease; /* 添加过渡效果 */
+}
+
+/* 主要登录按钮 (type="primary") */
+.login-form .el-button--primary {
+    background-color: #1A73E8; /* 主色调蓝 */
+    border-color: #1A73E8;
+    box-shadow: 0 4px 10px rgba(26, 115, 232, 0.2); /* 按钮阴影 */
+}
+
+.login-form .el-button--primary:hover,
+.login-form .el-button--primary:focus {
+    background-color: #1765C7; /* 悬停/聚焦时变深 */
+    border-color: #1765C7;
+    box-shadow: 0 6px 15px rgba(26, 115, 232, 0.3); /* 悬停时阴影加深 */
+    transform: translateY(-2px); /* 细微上浮效果 */
+}
+
+/* 患者注册按钮 (type="warning", plain) */
+.login-form .el-button--warning.is-plain {
+    background-color: #FFFFFF; /* 白色背景 */
+    color: #FFC107; /* 警告色文字 (橙黄) */
+    border-color: #FFC107; /* 警告色边框 */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.login-form .el-button--warning.is-plain:hover,
+.login-form .el-button--warning.is-plain:focus {
+    background-color: #FFF8E1; /* 悬停/聚焦时背景微变 */
+    color: #FFA000; /* 颜色更深 */
+    border-color: #FFA000;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+    transform: translateY(-1px);
+}
+
+/* 患者登录按钮 (type="warning" 但非plain) */
+.login-form .el-button--warning {
+    background-color: #FFC107; /* 警告色背景 (橙黄) */
+    border-color: #FFC107;
+    color: #FFFFFF;
+    box-shadow: 0 4px 10px rgba(255, 193, 7, 0.2);
+}
+
+.login-form .el-button--warning:hover,
+.login-form .el-button--warning:focus {
+    background-color: #FFA000; /* 悬停/聚焦时变深 */
+    border-color: #FFA000;
+    box-shadow: 0 6px 15px rgba(255, 193, 7, 0.3);
+    transform: translateY(-2px);
+}
+
+/* =====================================================================
+ * 8. 底部版权信息 (.footer-text)
+ * ===================================================================== */
+.footer-text {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: #A0A0A0; /* 柔和的灰色 */
+    font-size: 14px;
+    z-index: 0; /* 确保在其他内容之下 */
+    white-space: nowrap; /* 防止版权信息换行 */
+}
+
+/* =====================================================================
+ * 9. Element UI 表单项间距和注册弹窗样式 (微调)
+ * ===================================================================== */
+.login-form .el-form-item {
+    margin-bottom: 25px; /* 增加表单项间距，使界面更宽松 */
+}
+
+.el-dialog__header {
+    background-color: #1A73E8; /* 弹窗头部背景 */
+    color: #FFFFFF;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+    padding: 15px 20px;
+}
+
+.el-dialog__title {
+    color: #FFFFFF;
+    font-weight: bold;
+}
+
+.el-dialog__headerbtn .el-dialog__close {
+    color: #FFFFFF;
+}
+
+.el-dialog__body {
+    padding: 30px;
+}
+
+.el-dialog__footer {
+    padding: 15px 20px;
+    text-align: right;
+    border-top: 1px solid #EBEEF5;
+}
+
+.el-dialog {
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}

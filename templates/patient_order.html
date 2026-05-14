@@ -1,0 +1,289 @@
+{%extends "patient.html" %} 
+  {% block order %}active{% endblock %} 
+ {% block mainbody %} 
+
+ {% verbatim %} 
+ <div id="app2" class="container"> 
+   <div class="department-table"> 
+     <el-table 
+       :data="list" 
+       stripe 
+       style="width: 100%"> 
+       <el-table-column 
+         prop="id" 
+         label="就诊号" 
+         width="80">  
+       </el-table-column> 
+       <el-table-column 
+         prop="department_name" 
+         label="科室" 
+         width="100"> 
+       </el-table-column> 
+       <el-table-column 
+         prop="registration_fee" 
+         label="挂号费" 
+         width="100">  
+       </el-table-column> 
+       <el-table-column
+        prop="doctor_name"
+        label="主治医师"
+        width="120">
+      </el-table-column>
+      <el-table-column
+        prop="order_advice"
+        label="医嘱"
+        width="150">
+      </el-table-column>
+      <el-table-column
+        prop="medicine_list"
+        label="开药"
+        width="100">
+        <template slot-scope="{ row }">
+          <el-button v-if="row.medicine_list" type="text" @click="onShowMedicine(row)">查看清单</el-button>
+        </template>
+      </el-table-column>
+      <el-table-column
+        prop="total_cost"
+        label="总费用"
+        width="100">
+      </el-table-column>
+      <el-table-column
+        prop="payment_status"
+        label="缴费状态"
+        width="100">
+        <template slot-scope="scope">
+          <el-tag :type="scope.row.payment_status === '已缴费' ? 'success' : 'danger'">
+            {{ scope.row.payment_status }}
+          </el-tag>
+        </template>
+      </el-table-column>
+      <el-table-column
+        prop="number_take_status"
+        label="取号状态"
+        width="100"> 
+        <template slot-scope="scope">
+          <el-tag :type="scope.row.number_take_status === '已取号' ? 'success' : 'info'">
+            {{ scope.row.number_take_status }}
+          </el-tag>
+        </template>
+      </el-table-column>
+      <el-table-column
+        prop="status"
+        label="就诊状态"
+        :formatter="onFormatterOrderStatus"
+        width="100">
+      </el-table-column>
+      <el-table-column
+        prop="time"
+        label="创建时间"
+        width="140">
+      </el-table-column>
+      <el-table-column
+        label="操作"
+        width="120"> 
+        <template slot-scope="scope">
+          <el-button
+            v-if="scope.row.payment_status === '未缴费'"
+            size="mini"
+            type="primary"
+            @click="onPayOrder(scope.row)"
+            style="margin-bottom: 5px;">
+            缴费
+          </el-button>
+          <el-button
+            v-if="scope.row.payment_status === '已缴费' && scope.row.number_take_status === '未取号'" 
+            size="mini"
+            type="warning"
+            @click="onTakeNumber(scope.row)"> 
+            取号
+          </el-button>
+        </template>
+      </el-table-column>
+    </el-table>
+  </div>
+  <el-dialog title="药品清单" :visible.sync="showMedicine" width="50%">
+    <el-table
+      :data="medicineList"
+      style="width: 100%">
+      <el-table-column
+        prop="id"
+        label="编号"
+        align="center">
+      </el-table-column>
+      <el-table-column
+        prop="name"
+        label="名称"
+        align="center">
+      </el-table-column>
+      <el-table-column
+        prop="price"
+        label="价格"
+        align="center">
+        <template slot-scope="{ row }">
+          {{row.price}}元 每{{row.unit}}
+        </template>
+      </el-table-column>
+    </el-table>
+  </el-dialog>
+</div>
+{% endverbatim %}
+<script>
+  new Vue({
+    el: '#app2',
+    data() {
+      return {
+        list: [],
+        userInfo: {
+          user_id: ''
+        },
+
+        OrderStatusList: [
+          { id: 1, name: '挂号完成' }, // 对应数据库中的 1
+          { id: 2, name: '问诊完成' }  // 对应数据库中的 2
+        ],
+        paymentStatusList: [ // 缴费状态列表，用于前端逻辑判断
+          { id: '未缴费', name: '未缴费' },
+          { id: '已缴费', name: '已缴费' }
+        ],
+        // 查看药品
+        showMedicine: false,
+        medicineList: []
+      }
+    },
+    mounted() {
+      let userInfo = window.localStorage.getItem("hospital_userInfo")
+      if (userInfo) {
+        userInfo = JSON.parse(userInfo)
+        this.userInfo.user_id = userInfo.id
+      }
+      this.getOrderList()
+    },
+    methods: {
+      getOrderList() {
+        axios.post(ToDJ('orderList'), new URLSearchParams({ user_id: this.userInfo.user_id })).then(res => {
+          if (res.data.code === 0) {
+            const list = res.data.data
+            for (const item of list) {
+              item.time = this.formateTime(item.time)
+              // 确保 payment_status 存在且是字符串
+              item.payment_status = item.payment_status || '未知状态'; // 如果后端没返回，给个默认值
+              item.number_take_status = item.number_take_status || '未知状态';
+            }
+            this.list = list
+          } else {
+            this.NotifyFail(res.data.msg || res.data.data)
+          }
+        }).catch(error => {
+            console.error('获取订单列表失败:', error);
+            this.NotifyFail("获取订单列表失败");
+        })
+      },
+      // 就诊状态格式化：确保匹配的是数字ID
+      onFormatterOrderStatus(row, column, callValue, index) {
+        // 如果后端返回的是数字，就进行数字匹配
+        for (const item of this.OrderStatusList) {
+          if (item.id === row.status) { // 这里的 row.status 应该是数字 1 或 2
+            return item.name
+          }
+        }
+        return row.status || ''; // 如果没有匹配到，返回原始值或者空字符串
+      },
+      // 查看药品
+      onShowMedicine(row) {
+        const { medicine_list } = row
+        axios.post(ToDJ('medicineStrList'), new URLSearchParams({ medicine_list })).then(res => {
+          if (res.data.code === 0) {
+            const list = res.data.data
+            this.medicineList = list
+            this.showMedicine = true
+          } else {
+            this.NotifyFail(res.data.msg || res.data.data)
+          }
+        }).catch(error => {
+            console.error('获取药品清单失败:', error);
+            this.NotifyFail("获取药品清单失败");
+        })
+      },
+      // 缴费方法
+      onPayOrder(row) {
+        this.$confirm(`确定要为订单 "${row.id}" 应缴费用办理缴费吗?`, '确认缴费', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          const params = new URLSearchParams();
+          params.append('id', row.id);
+          axios.post(ToDJ('orderPay'), params).then(res => {
+            if (res.data.code === 0) {
+              this.NotifySuc(res.data.msg || "缴费成功");
+              this.getOrderList(); // 刷新列表
+            } else {
+              this.NotifyFail(res.data.msg || "缴费失败");
+            }
+          }).catch(error => {
+              console.error('请求缴费失败:', error);
+              this.NotifyFail("请求缴费失败");
+          });
+        }).catch(() => {
+          this.NotifyFail("已取消缴费");
+        });
+      },
+      // 取号
+      onTakeNumber(row) {
+        this.$confirm(`确定要为订单 "${row.id}" 办理取号吗?`, '确认取号', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          const params = new URLSearchParams();
+          params.append('id', row.id);
+          axios.post(ToDJ('orderTakeNumber'), params).then(res => {
+            if (res.data.code === 0) {
+              this.NotifySuc(res.data.msg || "取号成功");
+              this.getOrderList(); // 刷新列表以更新取号状态
+            } else {
+              this.NotifyFail(res.data.msg || "取号失败");
+            }
+          }).catch(error => {
+              console.error('请求取号失败:', error);
+              this.NotifyFail("请求取号失败");
+          });
+        }).catch(() => {
+          this.NotifyFail("已取消取号");
+        });
+      },
+      // 成功提示
+      NotifySuc(str) {
+        this.$message({
+          message: str,
+          type: 'success'
+        })
+      },
+      // 错误提示
+      NotifyFail(str) {
+        this.$message({
+          message: str,
+          type: 'warning'
+        })
+      },
+      // 格式化时间
+      formateTime(oriDate) {
+        if (!oriDate) {
+          return ''
+        }
+        const formateDate = new Date(oriDate)
+        const year =  formateDate.getFullYear()
+        const month =  formateDate.getMonth() + 1
+        const day = formateDate.getDate()
+        let h = formateDate.getHours()
+        let m = formateDate.getMinutes()
+        let s = formateDate.getSeconds()
+        h = h >= 10 ? h : `0${h}`
+        m = m >= 10 ? m : `0${m}`
+        s = s >= 10 ? s : `0${s}`
+        return `${year}-${month}-${day} ${h}:${m}`
+      }
+    }
+  })
+</script>
+{% endblock %}

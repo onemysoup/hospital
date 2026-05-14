@@ -1,0 +1,120 @@
+{%extends "patient.html" %}
+ <!-- 导航标记 -->
+{% block home %}active{% endblock %}
+<!-- 内容区 -->
+{% block mainbody %}
+
+{% verbatim %}
+<div id="app2" class="container">
+  <div class="order-wrapper">
+    <el-form ref="addOrderForm" :model="addOrderInfo" :rules="orderRules" label-width="80px" label-position="left">
+      <el-form-item label="姓名" prop="name">
+        <el-input disabled v-model="addOrderInfo.name"/>
+      </el-form-item>
+      <el-form-item label="身份证" prop="id_card">
+        <el-input disabled v-model="addOrderInfo.id_card"/>
+      </el-form-item>
+      <el-form-item label="科室" prop="department_id">
+        <el-select v-model="addOrderInfo.department_id" placeholder="请选择科室">
+          <el-option
+            v-for="item in departmentList"
+            :key="item.id"
+            :label="item.name"
+            :value="item.id"/>
+        </el-select>
+      </el-form-item>
+      <el-form-item label="病情自述" prop="readme">
+        <el-input v-model="addOrderInfo.readme"/>
+      </el-form-item>
+    </el-form>
+    <div slot="footer" class="dialog-footer">
+      <el-button type="primary" @click="onSubmitOrder">立即挂号</el-button>
+    </div>
+  </div>
+</div>
+{% endverbatim %}
+<script>
+  new Vue({
+    el: '#app2',
+    data() {
+      return {
+        userInfo: {
+          id: '',
+          id_card: '',
+          name: '',
+          sex: '',
+          age: ''
+        },
+        addOrderInfo: {
+          user_id: '',
+          id_card: '',
+          name: '',
+          readme: '',
+          registration_fee: '',
+          department_id: '',
+          department_name: ''
+        },
+        // 科室列表
+        departmentList: [],
+        orderRules: {
+          name: [{ required: true, message: '请输入姓名', trigger: 'blur' }],
+          id_card: [{ required: true, message: '请输入身份证', trigger: 'blur' }],
+          department_id: [{ required: true, message: '请选中科室', trigger: 'change' }],
+          readme: [{ required: true, message: '请输入症状', trigger: 'blur' }]
+        }
+      }
+    },
+    mounted() {
+      let userInfo = window.localStorage.getItem("hospital_userInfo")
+      if (userInfo) {
+        userInfo = JSON.parse(userInfo)
+        this.userInfo = userInfo
+        this.addOrderInfo.id_card = userInfo.id_card
+        this.addOrderInfo.name = userInfo.name
+        this.addOrderInfo.user_id = userInfo.id
+      }
+      this.getDepartmentList()
+    },
+    methods: {
+      getDepartmentList() {
+        // 获取部门列表
+        axios.post(ToDJ('departmentList'), new URLSearchParams()).then(res => {
+          if (res.data.code === 0) {
+            this.departmentList = res.data.data
+          } else {
+            this.NotifyFail(res.data.data)
+          }
+        })
+      },
+      onSubmitOrder() {
+        this.$refs.addOrderForm.validate((valid) => {
+          if (valid) {
+            // 新添加
+            axios.post(ToDJ('orderAdd'), new URLSearchParams(this.addOrderInfo)).then(res => {
+              if (res.data.code === 0) {
+                this.NotifySuc("挂号成功")
+              } else {
+                this.NotifyFail(res.data.data)
+              }
+            })
+          }
+        })
+      },
+      // 成功提示
+      NotifySuc(str) {
+        this.$message({
+          message: str,
+          type: 'success'
+        })
+			},
+      // 错误提示
+			NotifyFail(str) {
+        this.$message({
+          message: str,
+          type: 'warning'
+        })
+			}
+    }
+  })
+</script>
+{% endblock %}

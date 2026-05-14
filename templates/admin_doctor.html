@@ -1,0 +1,219 @@
+{%extends "admin.html" %}
+ {% block doctor %}active{% endblock %}
+{% block mainbody %}
+
+{% verbatim %}
+<div id="app2" class="container">
+  <div class="filter-container">
+    <div class="filter-item">
+      <el-button @click="onAddDoctor">添加</el-button>
+    </div>
+  </div>
+  <div class="department-table">
+    <el-table
+      :data="list"
+      stripe
+      style="width: 100%">
+      <el-table-column
+        prop="id"
+        label="编号"
+        width="180">
+      </el-table-column>
+      <el-table-column
+        prop="name"
+        label="名称"
+        width="180">
+      </el-table-column>
+      <el-table-column
+        prop="id_card"
+        label="身份证">
+      </el-table-column>
+      <el-table-column
+        prop="department_name"
+        label="科室">
+      </el-table-column>
+      <el-table-column
+        prop="shift_status"
+        label="值班状态"
+        width="150">
+        <template slot-scope="scope">
+          <el-select 
+            v-model="scope.row.shift_status" 
+            placeholder="选择状态" 
+            @change="handleShiftStatusChange(scope.row)">
+            <el-option label="值班" value="值班"></el-option>
+            <el-option label="轮休" value="轮休"></el-option>
+          </el-select>
+        </template>
+      </el-table-column>
+      <el-table-column
+        label="操作"
+        width="100"> <template slot-scope="scope">
+          <el-button size="mini" type="danger" @click="onDeleteDoctor(scope.row)">删除</el-button>
+        </template>
+      </el-table-column>
+    </el-table>
+  </div>
+
+  <el-dialog title="添加医生" :visible.sync="showAddDoctorForm">
+    <el-form ref="addDoctorForm" :model="addDoctorInfo" :rules="doctorRules" label-width="80px" label-position="left">
+      <el-form-item label="姓名" prop="name">
+        <el-input v-model="addDoctorInfo.name"/>
+      </el-form-item>
+      <el-form-item label="身份证" prop="id_card">
+        <el-input v-model="addDoctorInfo.id_card"/>
+      </el-form-item>
+      <el-form-item label="科室" prop="department_id">
+        <el-input v-model="addDoctorInfo.department_id"/>
+      </el-form-item>
+      <el-form-item label="密码" prop="password">
+        <el-input v-model="addDoctorInfo.password"/>
+      </el-form-item>
+      <el-form-item label="值班状态" prop="shift_status">
+        <el-select v-model="addDoctorInfo.shift_status" placeholder="请选择值班状态">
+          <el-option label="值班" value="值班"></el-option>
+          <el-option label="轮休" value="轮休"></el-option>
+        </el-select>
+      </el-form-item>
+    </el-form>
+    <div slot="footer" class="dialog-footer">
+      <el-button @click="showAddDoctorForm = false">取 消</el-button>
+      <el-button type="primary" @click="onSubmitAddDoctor">确 定</el-button>
+    </div>
+  </el-dialog>
+</div>
+{% endverbatim %}
+<script>
+  new Vue({
+    el: '#app2',
+    data() {
+      return {
+        list: [],
+        addDoctorFormType: 1,
+        showAddDoctorForm: false,
+        addDoctorInfo: {
+          id: '',
+          name: '',
+          id_card: '',
+          department_id: '',
+          password: '',
+          shift_status: '值班'
+        },
+        doctorRules: {
+          name: [{ required: true, message: '请输入姓名', trigger: 'blur' }],
+          id_card: [{ required: true, message: '请输入身份证', trigger: 'blur' }],
+          department_id: [{ required: true, message: '请输入科室ID', trigger: 'blur' }],
+          password: [{ required: true, message: '请输入密码', trigger: 'blur' }],
+          shift_status: [{ required: true, message: '请选择值班状态', trigger: 'change' }] // **新增：值班状态验证规则**
+        }
+      }
+    },
+    mounted() {
+      this.getDoctorList()
+    },
+    methods: {
+      getDoctorList() {
+        axios.post(ToDJ('doctorList'), new URLSearchParams()).then(res => {
+          if (res.data.code === 0) {
+            console.log("医生列表数据:", res.data.data) 
+            this.list = res.data.data
+          } else {
+            this.NotifyFail(res.data.data)
+          }
+        }).catch(error => { 
+            console.error('获取医生列表失败:', error);
+            this.NotifyFail("获取医生列表失败，请查看控制台");
+        });
+      },
+      onAddDoctor() {
+        this.addDoctorFormType = 1
+        this.showAddDoctorForm = true
+        this.addDoctorInfo = { id: '', name: '', id_card: '', department_id: '', password: '', shift_status: '值班' };
+        this.$nextTick(() => {
+            if (this.$refs.addDoctorForm) {
+                this.$refs.addDoctorForm.clearValidate();
+            }
+        });
+      },
+      onSubmitAddDoctor() {
+        this.$refs.addDoctorForm.validate((valid) => {
+          if (valid) {
+            if (this.addDoctorFormType === 1) {
+              axios.post(ToDJ('doctorAdd'), new URLSearchParams(this.addDoctorInfo)).then(res => {
+                if (res.data.code === 0) {
+                  this.NotifySuc("添加成功")
+                  this.showAddDoctorForm = false
+                  this.getDoctorList()
+                } else {
+                  this.NotifyFail(res.data.data)
+                }
+              }).catch(error => { 
+                  console.error('添加医生失败:', error);
+                  this.NotifyFail("添加医生失败，请查看控制台");
+              });
+            }
+          } else {
+              this.NotifyFail("请检查表单填写");
+              return false;
+          }
+        })
+      },
+      handleShiftStatusChange(row) {
+        console.log("Updating shift status for:", row.id, "to:", row.shift_status);
+        const data = {
+          id: row.id,
+          shift_status: row.shift_status
+        };
+        axios.post(ToDJ('doctorEditShiftStatus'), new URLSearchParams(data)).then(res => {
+          if (res.data.code === 0) {
+            this.NotifySuc('值班状态更新成功')
+          } else {
+            this.NotifyFail(res.data.data)
+            this.getDoctorList(); 
+          }
+        }).catch(error => {
+          console.error("Error updating shift status:", error);
+          this.NotifyFail('请求失败，请检查网络或服务器');
+          this.getDoctorList();
+        });
+      },
+      onDeleteDoctor(row) {
+        this.$confirm(`此操作将永久删除医生 "${row.name}" (ID: ${row.id}), 是否继续?`, '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          const params = new URLSearchParams();
+          params.append('id', row.id); 
+
+          axios.post(ToDJ('doctorDelete'), params).then(res => {
+            if (res.data.code === 0) { 
+              this.NotifySuc(res.data.msg || "删除成功"); 
+              this.getDoctorList(); 
+            } else {
+              this.NotifyFail(res.data.msg || "删除失败"); 
+            }
+          }).catch(error => { 
+              console.error('请求删除医生失败:', error);
+              this.NotifyFail("请求删除医生失败");
+          });
+        }).catch(() => {
+          this.NotifyFail("已取消删除"); 
+        });
+      },
+      NotifySuc(str) {
+        this.$message({
+          message: str,
+          type: 'success'
+        })
+          },
+      NotifyFail(str) {
+        this.$message({
+          message: str,
+          type: 'warning'
+        })
+          }
+    }
+  })
+</script>
+{% endblock %}

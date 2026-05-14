@@ -1,0 +1,170 @@
+{% extends "admin.html" %}
+{% load static %}
+
+{% block department %}active{% endblock %}
+
+{% block mainbody %}
+{% verbatim %}
+<div id="app2" class="container">
+  <div class="filter-container">
+    <div class="filter-item">
+      <el-button @click="onAddDepartment">添加</el-button>
+    </div>
+  </div>
+  <div class="department-table">
+  <el-table
+    :data="list"
+    stripe
+    style="width: 100%">
+    <el-table-column
+      prop="id"
+      label="编号"> </el-table-column>
+    <el-table-column
+      prop="name"
+      label="名称"> </el-table-column>
+    <el-table-column
+      prop="registration_fee"
+      label="挂号费"> </el-table-column>
+    <el-table-column
+      label="操作"> <template slot-scope="scope">
+        <el-button size="mini" type="danger" @click="onDeleteDepartment(scope.row)">删除</el-button>
+      </template>
+    </el-table-column>
+  </el-table>
+</div>
+
+  <el-dialog title="添加科室" :visible.sync="showAddDepartmentForm">
+    <el-form ref="addDepartmentForm" :model="addDepartmentInfo" :rules="departmentRules" label-width="80px" label-position="left">
+      <el-form-item label="名称" prop="name">
+        <el-input v-model="addDepartmentInfo.name"/>
+      </el-form-item>
+      <el-form-item label="挂号费" prop="registration_fee">
+        <el-input-number
+          v-model="addDepartmentInfo.registration_fee"
+          :precision="2"
+          :step="0.01"
+          :min="0"
+          controls-position="right">
+        </el-input-number>
+      </el-form-item>
+    </el-form>
+    <div slot="footer" class="dialog-footer">
+      <el-button @click="showAddDepartmentForm = false">取 消</el-button>
+      <el-button type="primary" @click="onSubmitAddDepartment">确 定</el-button>
+    </div>
+  </el-dialog>
+</div>
+{% endverbatim %}
+<script>
+  new Vue({
+    el: '#app2',
+    data() {
+      return {
+        list: [],
+        addDepartmentFormType: 1,
+        showAddDepartmentForm: false,
+        addDepartmentInfo: {
+          id: '',
+          name: '',
+          registration_fee: 0.00
+        },
+        departmentRules: {
+          name: [{ required: true, message: '请输入科室名称', trigger: 'blur' }],
+          // 新增：挂号费验证规则
+          registration_fee: [
+            { required: true, message: '请输入挂号费', trigger: 'blur' },
+            { type: 'number', message: '挂号费必须是数字', trigger: 'blur', transform: (value) => Number(value) }
+          ]
+        }
+      }
+    },
+    mounted() {
+      this.getDepartmentList()
+    },
+    methods: {
+      getDepartmentList() {
+        axios.post(ToDJ('departmentList'), new URLSearchParams()).then(res => {
+          if (res.data.code === 0) {
+            this.list = res.data.data
+          } else {
+            this.NotifyFail(res.data.msg)
+          }
+        }).catch(error => {
+            console.error('获取科室列表失败:', error);
+            this.NotifyFail("获取科室列表失败");
+        });
+      },
+      onAddDepartment() {
+        this.addDepartmentFormType = 1;
+        this.showAddDepartmentForm = true;
+        // 重置表单数据
+        this.addDepartmentInfo = { id: '', name: '', registration_fee: 0.00 };
+        this.$nextTick(() => {
+            if (this.$refs.addDepartmentForm) {
+                this.$refs.addDepartmentForm.clearValidate();
+            }
+        });
+      },
+      onSubmitAddDepartment() {
+        this.$refs.addDepartmentForm.validate((valid) => {
+          if (valid) {
+            if (this.addDepartmentFormType === 1) {
+              const params = new URLSearchParams(this.addDepartmentInfo); // 确保这里包含了 registration_fee
+              axios.post(ToDJ('departmentAdd'), params).then(res => {
+                if (res.data.code === 0) {
+                  this.NotifySuc(res.data.msg || "科室添加成功");
+                  this.showAddDepartmentForm = false;
+                  this.getDepartmentList();
+                } else {
+                  this.NotifyFail(res.data.msg || "科室添加失败");
+                }
+              }).catch(error => {
+                  console.error('添加科室失败:', error);
+                  this.NotifyFail("添加科室失败");
+              });
+            }
+          } else {
+              this.NotifyFail("请检查表单填写");
+              return false;
+          }
+        });
+      },
+      onDeleteDepartment(row) {
+        this.$confirm(`此操作将永久删除科室 "${row.name}" (ID: ${row.id}), 是否继续?`, '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          const params = new URLSearchParams();
+          params.append('id', row.id);
+          axios.post(ToDJ('departmentDelete'), params).then(res => {
+            if (res.data.code === 0) {
+              this.NotifySuc(res.data.msg || "删除成功");
+              this.getDepartmentList();
+            } else {
+              this.NotifyFail(res.data.msg || "删除失败");
+            }
+          }).catch(error => {
+              console.error('请求删除科室失败:', error);
+              this.NotifyFail("请求删除科室失败");
+          });
+        }).catch(() => {
+          this.NotifyFail("已取消删除");
+        });
+      },
+      NotifySuc(str) {
+        this.$message({
+          message: str,
+          type: 'success'
+        })
+      },
+      NotifyFail(str) {
+        this.$message({
+          message: str,
+          type: 'warning'
+        })
+      }
+    }
+  })
+</script>
+{% endblock %}

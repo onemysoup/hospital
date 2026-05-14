@@ -1,0 +1,52 @@
+// 通用页面样式
+
+@bg-color: #e5ecf5;
+@info-bg: #fff;
+
+html {
+  width: 100%;
+  height: 100%;
+}
+
+body {
+  width: 100%;
+  height: 100%;
+  background-color: @bg-color;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+#app {
+  width: 100%;
+  height: 100%;
+}
+
+.container {
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+  box-sizing: border-box;
+
+  .filter-container {
+    width: 100%;
+    display: flex;
+    margin-bottom: 10px;
+  }
+}
+
+.info-wrapper {
+  width: 100%;
+  height: 100%;
+  background-color: @info-bg;
+  padding: 10px;
+
+  .header {
+    width: 100%;
+    line-height: 50px;
+    background-color: @info-bg;
+  }
+}

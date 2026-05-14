@@ -1,0 +1,44 @@
+# Python cache and bytecode
+__pycache__/
+*.py[cod]
+*.so
+*.pyd
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# SQLite and local runtime data
+*.sqlite3
+*.db
+
+# Django local files
+media/
+staticfiles/
+
+# Logs
+*.log
+logs/
+
+# IDE/editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# macOS
+.DS_Store
+
+# Claude Code
+.claude/
+
+# Packaging/build
+build/
+dist/
+*.egg-info/

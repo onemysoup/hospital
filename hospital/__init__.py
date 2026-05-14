@@ -1,0 +1,1 @@
+# Prefer mysqlclient (MySQLdb). Keep this module intentionally minimal.

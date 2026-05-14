@@ -1,0 +1,121 @@
+// 管理后台页面样式
+
+@app-header-bg: #1976D2;
+@app-menu-bg: #3F51B5;
+@app-menu-hover-bg: #303F9F;
+@app-menu-active-bg: #2196F3;
+@app-menu-active-border: #4CAF50;
+@app-body-bg: #f5f5f5;
+@app-container-bg: #ffffff;
+@app-primary: #2196F3;
+@app-primary-hover: #0c7cd5;
+@header-height: 50px;
+@menu-width: 200px;
+
+.app-warpper {
+  width: 100%;
+  height: 100%;
+
+  .app-header {
+    width: 100%;
+    height: @header-height;
+    padding: 0 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #ffffff;
+    background-color: @app-header-bg;
+
+    h2 {
+      color: #ffffff;
+    }
+
+    a {
+      color: #ffffff;
+      text-decoration: none;
+      transition: background-color 0.3s ease;
+      padding: 5px 10px;
+      border-radius: 4px;
+
+      &:hover {
+        background-color: rgba(255, 255, 255, 0.2);
+      }
+    }
+  }
+
+  .app-body {
+    width: 100%;
+    height: calc(100% - @header-height);
+    display: flex;
+    background-color: @app-body-bg;
+
+    .app-menu {
+      width: @menu-width;
+      height: 100%;
+      background-color: @app-menu-bg;
+      flex-grow: 0;
+
+      .menu-item {
+        width: 100%;
+        height: 50px;
+        display: flex;
+        justify-content: flex-start;
+        padding-left: 20px;
+        align-items: center;
+        color: #ffffff;
+        text-decoration: none;
+        transition: background-color 0.3s ease, color 0.3s ease;
+
+        i {
+          margin-right: 10px;
+        }
+
+        &:hover {
+          background-color: @app-menu-hover-bg;
+          color: #ffffff;
+        }
+
+        &.active {
+          background-color: @app-menu-active-bg;
+          color: #ffffff;
+          border-left: 5px solid @app-menu-active-border;
+          padding-left: 15px;
+        }
+      }
+    }
+
+    .app-container {
+      flex-grow: 1;
+      width: calc(100% - @menu-width);
+      height: 100%;
+      padding: 10px;
+      background-color: @app-container-bg;
+      overflow-y: auto;
+    }
+  }
+}
+
+// 覆盖 Element UI 默认样式
+.el-button--primary {
+  background-color: @app-primary;
+  border-color: @app-primary;
+
+  &:hover,
+  &:focus {
+    background-color: @app-primary-hover;
+    border-color: @app-primary-hover;
+  }
+}
+
+.el-tabs__item.is-active {
+  color: @app-primary;
+}
+
+.el-tabs__active-bar {
+  background-color: @app-primary;
+}
+
+.el-input__inner:focus,
+.el-textarea__inner:focus {
+  border-color: @app-primary;
+}
